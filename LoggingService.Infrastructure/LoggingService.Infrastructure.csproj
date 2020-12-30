@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <UserSecretsId>f965f12a-3d03-426c-b06e-c6e2da643302</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LoggingService.Core\LoggingService.Core.csproj" />
+    <ProjectReference Include="..\LoggingService.Entities\LoggingService.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

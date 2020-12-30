@@ -1,16 +1,18 @@
+using LoggingService.Core.BackgroundServices;
+using LoggingService.Core.Core.Behaviors;
+using LoggingService.Core.Handlers;
+using LoggingService.Core.Interfaces;
+using LoggingService.Core.Services;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace LoggingService
 {
@@ -27,9 +29,21 @@ namespace LoggingService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddEntityFrameworkNpgsql().AddDbContext<LoggingDbContext>(
+                options => options.UseNpgsql(Configuration.GetConnectionString("LoggingDbConnectionString")));
+
+            services.AddMediatR(typeof(LoggingRequestHandler).GetTypeInfo().Assembly);
+
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
+            services.AddScoped(typeof(ILoggingService), typeof(LoggingService));
+            services.AddSingleton(typeof(ILogsQueue), typeof(LogsQueue));
+
+            services.AddHostedService<TimedHostedService>();
+
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Logging Service", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Logging Service", Version = "v1", Contact = new OpenApiContact { Url = new Uri("https://proceedix.com"), Name = "Proceedix" } });
             });
         }
 
@@ -42,6 +56,7 @@ namespace LoggingService
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Logging Service v1"));
             }
+
 
             app.UseHttpsRedirection();
 
